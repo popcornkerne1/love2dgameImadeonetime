@@ -1,0 +1,172 @@
+BUTTON_HEIGHT = 64
+Gameactive = false
+
+while Gameactive == false do
+      
+    local function newButton(text, fn)
+        return {
+            text = text,
+            fn = fn,
+            now = false,
+            last = false
+        }
+    end
+
+    Button1 = newButton("Start Game",  function()
+        Gameactive = true
+       end )
+    
+    local buttons = {}
+    
+    
+    
+        
+    
+    function love.load()
+        GameFont = love.graphics.newFont("Pixeltype.ttf", 40)
+        table.insert(buttons, Button1)
+        Target = {}
+        Target.x = 300
+        Target.y = 300
+        Target.radius = 70
+        Score = 0
+        Highscore = 0
+        Misses = 0
+        Source = love.audio.newSource("music.ogg", "static")
+        GameFont = love.graphics.newFont("Pixeltype.ttf", 40)
+        Title = love.window.setTitle("Fireball Conflicts")
+        Gunshot = love.audio.newSource("pewpew.mp3", "static")
+        Cursor = love.mouse.newCursor("output-onlinepngtools (2).png", 0, 0)
+        Background = love.graphics.newVideo("outerspace-58.ogv")
+        Spaceship = love.graphics.newImage("e.png")
+        Music = love.audio.play(Source)
+        SaveFile = love.filesystem.newFile("highscore.txt")
+        love.window.setMode(800, 450)
+    end
+    
+    function love.update()
+        while Score > Highscore do
+            Highscore = Score
+            SaveFile:open("w")
+            SaveFile:write(Highscore)
+            SaveFile:close()
+        end
+        
+        SaveFile:open("r")
+        temp = SaveFile:read(200)
+        Highscore = tonumber(temp)
+        SaveFile:close()
+    end
+    function love.draw()
+        local ww = love.graphics.getWidth()
+        local wh = love.graphics.getHeight()
+        local margin = 16
+        local breakloop = false
+        local button_width = ww * (1/3)
+        local total_heigth = (BUTTON_HEIGHT + margin) * #buttons
+        local Cursor_y = 0
+        local bx = (ww * 0.5) - (button_width * 0.5)
+        local by = (wh * 0.5) - (total_heigth * 0.5) + Cursor_y
+        local color = {0.4, 0.4, 0.5, 1}
+        local mx, my = love.mouse.getPosition()
+        local hot = mx > bx and mx < bx + button_width and my > by and my < by + BUTTON_HEIGHT
+        Button1.now = love.mouse.isDown(1)
+        while hot and breakloop == false do
+            color = {0.8, 0.8, 0.9, 1}
+            if Button1.now == true then
+                Gameactive = true
+                breakloop = true
+                dofile("C:\\Users\\marie\\Desktop\\Lua\\src\\game.lua")
+            end
+        break
+        end
+        
+        love.graphics.setColor(unpack(color))
+        for i, button in ipairs(buttons) do
+           love.graphics.rectangle("fill", bx, by, button_width, BUTTON_HEIGHT )
+        end
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.print(Button1.text, GameFont, bx + 60, by + 20)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.print(Highscore, 735, 430)
+    
+        Cursor_y = Cursor_y + (BUTTON_HEIGHT + margin)
+    end
+break
+end
+
+
+
+
+
+
+
+Game.Lua
+
+
+
+function love.load()
+end
+function TestForBackgroundImage()
+    if Background:isPlaying() then return end
+    Background:rewind()
+    Background:play()
+end
+
+function love.update(dt)
+    TestForBackgroundImage()
+    while Score > Highscore do
+        Highscore = Score
+        SaveFile:open("w")
+        SaveFile:write(Highscore)
+        SaveFile:close()
+    end
+    
+    SaveFile:open("r")
+    temp = SaveFile:read(200)
+    Highscore = tonumber(temp)
+    SaveFile:close()
+end
+
+function love.draw()
+    love.graphics.setFont(GameFont)
+    love.graphics.print(Score, 0, 0)
+    love.mouse.setCursor(Cursor)
+    Background:play()
+    if Background:isPlaying() == false then
+        Background:play()
+    end
+    love.graphics.draw(Background)
+    love.graphics.setColor(0, 1, 1)
+    love.graphics.draw(Spaceship, Target.x, Target.y, Target.radius)
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.setFont(GameFont)
+    love.graphics.print(Score, 0, 0)
+    love.graphics.print(Misses, 0, 430)
+    love.graphics.print(Highscore, 740, 430)
+end
+
+function love.mousepressed( x, y, button, istouch, presses )
+    if button == 1 then
+        MouseToTarget = DistanceBetween(x, y, Target.x, Target.y)
+        if MouseToTarget < Target.radius then
+            Score = Score + 1
+            Target.x = math.random(Target.radius, love.graphics.getWidth() - Target.radius)
+            Target.y = math.random(Target.radius, love.graphics.getHeight() - Target.radius)
+            Gunshot:stop()
+            Gunshot:play()
+        end
+
+        if MouseToTarget > Target.radius then
+            Misses = Misses + 1
+            if Misses == 3 then
+                love.event.quit()
+            end
+        end
+    end
+end
+
+function DistanceBetween(x1, y1, x2, y2)
+    return math.sqrt( (x2 - x1)^2 + (y2 - y1)^2 )
+end
+
